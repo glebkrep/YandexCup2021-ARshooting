@@ -211,12 +211,15 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
       // in label file and class labels start from 1 to number_of_classes+1,
       // while outputClasses correspond to class index from 0 to number_of_classes
       int labelOffset = 1;
-      recognitions.add(
-          new Recognition(
-              "" + i,
-              labels.get((int) outputClasses[0][i] + labelOffset),
-              outputScores[0][i],
-              detection));
+      String title = labels.get((int) outputClasses[0][i] + labelOffset);
+      if (title.equals("person")){
+        recognitions.add(
+                new Recognition(
+                        "" + i,
+                        title,
+                        outputScores[0][i],
+                        detection));
+      }
     }
     Trace.endSection(); // "recognizeImage"
     return recognitions;
