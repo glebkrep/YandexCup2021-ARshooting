@@ -49,6 +49,10 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/INDEX.LIST'
     }
+    aaptOptions {
+        noCompress "tflite"
+        // or noCompress "lite"
+    }
 }
 
 dependencies {
@@ -94,8 +98,8 @@ dependencies {
     implementation 'io.grpc:grpc-okhttp:1.36.0'
 
     // MLKit
-    implementation 'com.google.mlkit:object-detection:16.2.3'
-    implementation 'com.google.mlkit:object-detection-custom:16.3.1'
+    implementation 'com.google.mlkit:object-detection:16.2.7'
+    implementation 'com.google.mlkit:object-detection-custom:16.3.3'
 
     // ARCore
     implementation 'com.google.ar:core:1.24.0'
@@ -106,4 +110,10 @@ dependencies {
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.2'
+
+    implementation platform('com.google.firebase:firebase-bom:28.4.2')
+
+    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+
 }
+apply plugin: 'com.google.gms.google-services'
