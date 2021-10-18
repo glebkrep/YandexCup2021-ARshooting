@@ -1,10 +1,4 @@
 <resources>
     <string name="app_name">Arshooting</string>
-    <string name="scan_busy">Scanning…</string>
-    <string name="scan_available">Scan</string>
-    <string name="clear">Clear</string>
-    <string name="use_cloud_ml">Use Cloud ML</string>
-    <string name="tfe_od_app_name" translation_description="Object Detection demo app [CHAR_LIMIT=40]">Object Detection</string>
-    <string name="tfe_od_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
-    <string name="listen_to_results">Listen to Results</string>
+
 </resources>
