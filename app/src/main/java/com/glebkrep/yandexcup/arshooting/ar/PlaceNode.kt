@@ -2,10 +2,10 @@ package com.glebkrep.yandexcup.arshooting.ar
 
 import android.content.Context
 import android.widget.TextView
-import com.google.ar.sceneform.Node
-import com.google.ar.sceneform.rendering.ViewRenderable
 import com.glebkrep.yandexcup.arshooting.R
 import com.glebkrep.yandexcup.arshooting.ar.model.Player
+import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.rendering.ViewRenderable
 
 class PlaceNode(
     val context: Context,

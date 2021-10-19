@@ -1,10 +1,9 @@
 package com.glebkrep.yandexcup.arshooting.gameCore.repository
 
 import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionItem
-import com.glebkrep.yandexcup.arshooting.utils.Debug
 
 object FirestoreDatabaseResults {
-    fun getSessionData(sessionId:String,gotSessionItem: (SessionItem)->(Unit)){
+    fun getSessionData(sessionId: String, gotSessionItem: (SessionItem) -> (Unit)) {
         val collectionRef = FirestoreDatabaseHome.db.collection("sessions")
         collectionRef.document(sessionId).get().addOnCompleteListener { it ->
             if (it.isSuccessful) {

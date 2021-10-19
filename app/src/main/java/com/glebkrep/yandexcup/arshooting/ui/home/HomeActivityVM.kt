@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionState
-import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionStateFromInt
+import com.glebkrep.yandexcup.arshooting.gameCore.data.sessionStateFromInt
 import com.glebkrep.yandexcup.arshooting.gameCore.data.toPlayer
 import com.glebkrep.yandexcup.arshooting.gameCore.repository.FirestoreDatabaseHome
 import com.glebkrep.yandexcup.arshooting.utils.Debug
@@ -42,7 +42,11 @@ class HomeActivityVM : ViewModel() {
         _isCreator.postValue(true)
         val sesionUid = SharePreferences.getUdid() + System.currentTimeMillis()
         _sessionUID.value = sesionUid
-        FirestoreDatabaseHome.createSessionWithYourself(sesionUid,_myName,SharePreferences.getUdid())
+        FirestoreDatabaseHome.createSessionWithYourself(
+            sesionUid,
+            _myName,
+            SharePreferences.getUdid()
+        )
         startListeningForPlayersAndSessionState(sesionUid)
     }
 
@@ -58,38 +62,38 @@ class HomeActivityVM : ViewModel() {
         addYourselfToSession(sessionUid)
     }
 
-    private fun addYourselfToSession(sessionUid: String){
-        FirestoreDatabaseHome.addYourselfToSession(sessionUid,_myName,SharePreferences.getUdid())
+    private fun addYourselfToSession(sessionUid: String) {
+        FirestoreDatabaseHome.addYourselfToSession(sessionUid, _myName, SharePreferences.getUdid())
     }
 
-    private fun startListeningForSessions(){
+    private fun startListeningForSessions() {
         FirestoreDatabaseHome.startListeningForSessions {
-            val sessions = it.filter { it.value.state==SessionState.IN_LOBBY.int }.map { it.key }
+            val sessions = it.filter { it.value.state == SessionState.IN_LOBBY.int }.map { it.key }
             _sessions.postValue(sessions)
         }
     }
 
     private fun startListeningForPlayersAndSessionState(sessionUid: String) {
-        FirestoreDatabaseHome.startListeningForPlayersAndSessionState(sessionUid){ sessionItem ->
+        FirestoreDatabaseHome.startListeningForPlayersAndSessionState(sessionUid) { sessionItem ->
             val players = sessionItem.players.map { it.toPlayer() }
             Debug.log("sessionUid: ${sessionUid}")
             Debug.log("players: ${players.map { it.name }}")
             _connectedPlayers.postValue(players)
-            _sessionState.postValue(SessionStateFromInt(sessionItem.state))
+            _sessionState.postValue(sessionStateFromInt(sessionItem.state))
         }
     }
 
     fun startGame() {
-        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!,SessionState.PLAYING)
+        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!, SessionState.PLAYING)
     }
 
     fun stopSession() {
-        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!,SessionState.GAME_FINISHED)
+        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!, SessionState.GAME_FINISHED)
     }
 
     override fun onCleared() {
         super.onCleared()
-        if (_sessionState.value==SessionState.IN_LOBBY && _isCreator.value==true){
+        if (_sessionState.value == SessionState.IN_LOBBY && _isCreator.value == true) {
             FirestoreDatabaseHome.setSessionState(_sessionUID.value!!, SessionState.GAME_FINISHED)
         }
     }

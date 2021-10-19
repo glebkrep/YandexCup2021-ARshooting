@@ -1,4 +1,20 @@
 <resources>
     <string name="app_name">YandexCup.ARshooting</string>
+    <string name="get_session_id">Узнай у своего товарища название сессии и нажми чтобы подключиться</string>
+    <string name="session_list">Список сессий:</string>
+    <string name="results">Результаты!</string>
+    <string name="share">Поделиться</string>
+    <string name="ar_voinuwka">AR Войнушка</string>
+    <string name="permission_reasoning">Для работы приложения нужно разрешение на доступ к камере и геолокации</string>
+    <string name="provide_permission">Предоставить разрешение!</string>
+    <string name="no_permission">Разрешение не было предоставлено, приложение не сможет работать...</string>
+    <string name="your_name">Ваше имя</string>
+    <string name="create_session">Создать сессию</string>
+    <string name="player_list">Список игроков:</string>
+    <string name="start_game">Начать игру</string>
+    <string name="kill_session">Закрыть сессию</string>
+    <string name="you_are_host">Вы хост</string>
+    <string name="host_closed">Извините, хост закрыл сессию</string>
+    <string name="rules">Только хост может начать игру или закрыть сессию.\n\nВо время игры на игроках будет отображена метка, чтобы выстрелить нажмите на нее.\nИгра идет до последнего живого игрока.\nПопадя в игру первым делом нужно нажать на какую либо поверхность, тогда появятся метки противников</string>
 
 </resources>

@@ -1,6 +1,5 @@
 package com.glebkrep.yandexcup.arshooting.ui.game
 
-import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -22,8 +21,6 @@ import androidx.core.content.getSystemService
 import com.glebkrep.yandexcup.arshooting.R
 import com.glebkrep.yandexcup.arshooting.ar.PlaceNode
 import com.glebkrep.yandexcup.arshooting.ar.PlacesArFragment
-import com.glebkrep.yandexcup.arshooting.ar.model.Geometry
-import com.glebkrep.yandexcup.arshooting.ar.model.GeometryLocation
 import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.ar.model.getPositionVector
 import com.glebkrep.yandexcup.arshooting.ui.home.HomeActivity
@@ -52,7 +49,6 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
     private val orientationAngles = FloatArray(3)
 
     private var placeAnchorNode: AnchorNode? = null
-    private var players: List<Player>? = null
     private var currentLocation: Location? = null
 
     private val viewModel by viewModels<GameVM>()
@@ -78,13 +74,12 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         setUpAr()
-        getCurrentLocation {
-            players = getNearbyPlaces()
-        }
 
         viewModel.otherAlivePlayers.observe(this) { it ->
             Debug.log("alive players: ${it.map { it.name }}")
-            val playersString = it.map { it.name+" [lng:${it.location.location.lng};lat:${it.location.location.lat}]\n" }.joinToString { it }
+            val playersString =
+                it.map { it.name + " [lng:${it.location.location.lng};lat:${it.location.location.lat}]\n" }
+                    .joinToString { it }
             Debug.log("playersString:\n${playersString}")
             txtAlivePlayers
             txtAlivePlayers?.text = "Живые Соперники:\n${playersString}"
@@ -177,58 +172,6 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun getCurrentLocation(onSuccess: (Location) -> Unit) {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            currentLocation = location
-            onSuccess(location)
-        }.addOnFailureListener {
-            Log.e(TAG, "Could not get location")
-        }
-    }
-
-    private fun getNearbyPlaces(): List<Player> {
-        return listOf(
-            Player(
-                udid = "0",
-                name = "Конец справа",
-                location = Geometry(
-                    GeometryLocation(
-                        59.94065, 30.384895
-                    )
-                )
-            ),
-            Player(
-                udid = "1",
-                name = "Конец слева",
-                location = Geometry(
-                    GeometryLocation(
-                        59.939938, 30.386433
-                    )
-                )
-            ),
-            Player(
-                udid = "2",
-                name = "Через дорогу",
-                location = Geometry(
-                    GeometryLocation(
-                        59.940382, 30.385033
-                    )
-                )
-            ),
-            Player(
-                udid = "3",
-                name = "Сзади",
-                location = Geometry(
-                    GeometryLocation(
-                        59.940681, 30.385757
-                    )
-                )
-            )
-        )
-    }
-
-
     private fun isSupportedDevice(): Boolean {
         val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val openGlVersionString = activityManager.deviceConfigurationInfo.glEsVersion
@@ -254,7 +197,6 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size)
         }
 
-        // Update rotation matrix, which is needed to update orientation angles.
         SensorManager.getRotationMatrix(
             rotationMatrix,
             null,

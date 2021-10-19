@@ -42,10 +42,8 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var gameId = intent.extras?.getString("game_id")
-        //todo check for incoming game_id and navigate to results page
         setContent {
             ArshootingTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     val mainNavController = rememberNavController()
                     val viewModel: HomeActivityVM = viewModel()
@@ -67,7 +65,12 @@ class HomeActivity : ComponentActivity() {
                                 },
                                 toResults = {
                                     gameId = null
-                                    mainNavController.navigate(Screen.Results.route.replace("{sessionId}",it))
+                                    mainNavController.navigate(
+                                        Screen.Results.route.replace(
+                                            "{sessionId}",
+                                            it
+                                        )
+                                    )
                                 }
                             )
                         }
@@ -79,20 +82,20 @@ class HomeActivity : ComponentActivity() {
                                         this@HomeActivity,
                                         GameActivity::class.java
                                     ).apply {
-                                        putExtra("SESSION_ID",it)
+                                        putExtra("SESSION_ID", it)
                                     }
                                 )
                                 finish()
                             }
                         }
                         composable(Screen.SessionList.route) {
-                            SessionListPage(viewModel){
+                            SessionListPage(viewModel) {
                                 viewModel.connectToSession(it)
                                 mainNavController.navigate(Screen.CurrentSession.route)
                             }
                         }
-                        composable(Screen.Results.route){
-                            val vm:ResultsPageVM = androidx.lifecycle.viewmodel.compose.viewModel()
+                        composable(Screen.Results.route) {
+                            val vm: ResultsPageVM = androidx.lifecycle.viewmodel.compose.viewModel()
                             val sessionId = it.arguments?.getString("sessionId")
                             Debug.log("sessionId: $sessionId")
                             vm.setSessionId(sessionId)

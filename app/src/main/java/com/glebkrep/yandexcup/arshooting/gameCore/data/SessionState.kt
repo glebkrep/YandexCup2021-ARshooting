@@ -6,10 +6,10 @@ enum class SessionState(val int: Int) {
     GAME_FINISHED(2)
 }
 
-fun SessionStateFromInt(int: Int):SessionState{
-    return when(int){
-        0-> SessionState.IN_LOBBY
-        1->SessionState.PLAYING
-        else->SessionState.GAME_FINISHED
+fun sessionStateFromInt(int: Int): SessionState {
+    return when (int) {
+        0 -> SessionState.IN_LOBBY
+        1 -> SessionState.PLAYING
+        else -> SessionState.GAME_FINISHED
     }
 }
