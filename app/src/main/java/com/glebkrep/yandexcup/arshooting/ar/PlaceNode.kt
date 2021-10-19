@@ -5,11 +5,11 @@ import android.widget.TextView
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.glebkrep.yandexcup.arshooting.R
-import com.glebkrep.yandexcup.arshooting.ar.model.Place
+import com.glebkrep.yandexcup.arshooting.ar.model.Player
 
 class PlaceNode(
     val context: Context,
-    val place: Place?
+    val player: Player?
 ) : Node() {
 
     private var placeRenderable: ViewRenderable? = null
@@ -33,7 +33,7 @@ class PlaceNode(
                 setRenderable(renderable)
                 placeRenderable = renderable
 
-                place?.let {
+                player?.let {
                     textViewPlace = renderable.view.findViewById(R.id.placeName)
                     textViewPlace?.text = it.name
                 }

@@ -1,4 +1,4 @@
-package com.glebkrep.yandexcup.arshooting
+package com.glebkrep.yandexcup.arshooting.ui.home
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,15 +6,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.glebkrep.yandexcup.arshooting.ui.Screen
-import com.glebkrep.yandexcup.arshooting.ui.pages.home.HomePage
+import com.glebkrep.yandexcup.arshooting.ui.game.GameActivity
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.Screen
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.currentSession.CurrentSessionPage
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.home.HomePage
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.sessionList.SessionListPage
 import com.glebkrep.yandexcup.arshooting.ui.theme.ArshootingTheme
+
 //В детстве все любили играть в "войнушку",
 //главной проблемой которой было выяснить, кто в кого первый попал.
 //Благодаря современным технологиям "войнушку" можно модифицировать.
@@ -33,7 +35,7 @@ import com.glebkrep.yandexcup.arshooting.ui.theme.ArshootingTheme
 //- вести статистику «живых» игроков, регистрировать победителя,
 //- показывать на экране поток с камеры (AR). Для полного балла по задаче
 // при попадании в поле зрения экрана надо показывать метку игрока (любую на усмотрение участника).
-class MainActivity : ComponentActivity() {
+class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -41,30 +43,43 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     val mainNavController = rememberNavController()
+                    val viewModel: HomeActivityVM = viewModel()
                     NavHost(
                         navController = mainNavController,
                         startDestination = Screen.Home.route
                     ) {
-                        composable(Screen.Home.route) { HomePage(mainNavController){
-                            startActivity(Intent(this@MainActivity,GameActivity::class.java))
-                        } }
+                        composable(Screen.Home.route) {
+                            HomePage(
+                                createSession = {
+                                    viewModel.setMyName(it)
+                                    viewModel.createSession()
+                                    mainNavController.navigate(Screen.CurrentSession.route)
+                                },
+                                sessionList = {
+                                    viewModel.setMyName(it)
+                                    viewModel.goToSessionList()
+                                    mainNavController.navigate(Screen.SessionList.route)
+                                }
+                            )
+                        }
+                        composable(Screen.CurrentSession.route) {
+                            CurrentSessionPage(viewModel) {
+                                this@HomeActivity.startActivity(
+                                    Intent(
+                                        this@HomeActivity,
+                                        GameActivity::class.java
+                                    )
+                                )
+                            }
+                        }
+                        composable(Screen.SessionList.route) {
+                            SessionListPage(){
 
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ArshootingTheme {
-        Greeting("Android")
     }
 }

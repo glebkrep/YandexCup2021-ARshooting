@@ -1,4 +1,4 @@
-package com.glebkrep.yandexcup.arshooting
+package com.glebkrep.yandexcup.arshooting.ui.game
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
+import com.glebkrep.yandexcup.arshooting.R
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -21,7 +22,7 @@ import com.glebkrep.yandexcup.arshooting.ar.PlaceNode
 import com.glebkrep.yandexcup.arshooting.ar.PlacesArFragment
 import com.glebkrep.yandexcup.arshooting.ar.model.Geometry
 import com.glebkrep.yandexcup.arshooting.ar.model.GeometryLocation
-import com.glebkrep.yandexcup.arshooting.ar.model.Place
+import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.ar.model.getPositionVector
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
@@ -41,7 +42,7 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
     private val orientationAngles = FloatArray(3)
 
     private var anchorNode: AnchorNode? = null
-    private var places: List<Place>? = null
+    private var players: List<Player>? = null
     private var currentLocation: Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +101,7 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             return
         }
 
-        val places = places
+        val places = players
         if (places == null) {
             Log.w(TAG, "No places to put")
             return
@@ -117,13 +118,13 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun showInfoWindow(place: Place) {
+    private fun showInfoWindow(player: Player) {
         // Show in AR
         val matchingPlaceNode = anchorNode?.children?.filter {
             it is PlaceNode
         }?.first {
-            val otherPlace = (it as PlaceNode).place ?: return@first false
-            return@first otherPlace == place
+            val otherPlace = (it as PlaceNode).player ?: return@first false
+            return@first otherPlace == player
         } as? PlaceNode
 //        matchingPlaceNode?.showInfoWindow()
     }
@@ -131,8 +132,8 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
     private fun setUpMaps() {
         getCurrentLocation {
-            places = getNearbyPlaces()
-            for (place in places?: listOf()){
+            players = getNearbyPlaces()
+            for (place in players?: listOf()){
                 showInfoWindow(place)
             }
         }
@@ -148,37 +149,33 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun getNearbyPlaces():List<Place> {
+    private fun getNearbyPlaces():List<Player> {
         return listOf(
-            Place(
-                id = "0",
-                icon = "",
+            Player(
+                udid = "0",
                 name = "Конец справа",
-                geometry = Geometry(GeometryLocation(
+                location = Geometry(GeometryLocation(
                     59.94065, 30.384895
                 ))
             ),
-            Place(
-                id = "1",
-                icon = "",
+            Player(
+                udid = "1",
                 name = "Конец слева",
-                geometry = Geometry(GeometryLocation(
+                location = Geometry(GeometryLocation(
                     59.939938,30.386433
                 ))
             ),
-            Place(
-                id = "2",
-                icon = "",
+            Player(
+                udid = "2",
                 name = "Через дорогу",
-                geometry = Geometry(GeometryLocation(
+                location = Geometry(GeometryLocation(
                     59.940382,30.385033
                 ))
             ),
-            Place(
-                id = "3",
-                icon = "",
+            Player(
+                udid = "3",
                 name = "Сзади",
-                geometry = Geometry(GeometryLocation(
+                location = Geometry(GeometryLocation(
                     59.940681, 30.385757
                 ))
             )
