@@ -49,6 +49,10 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/INDEX.LIST'
     }
+    aaptOptions {
+        noCompress "tflite"
+        // or noCompress "lite"
+    }
 }
 
 dependencies {
@@ -87,23 +91,25 @@ dependencies {
     // permissions
     implementation "com.google.accompanist:accompanist-permissions:0.19.0"
 
-
-    // Google Cloud Vision APIs
-    implementation platform('com.google.cloud:libraries-bom:19.2.1')
-    implementation 'com.google.cloud:google-cloud-vision:1.102.0'
-    implementation 'io.grpc:grpc-okhttp:1.36.0'
-
-    // MLKit
-    implementation 'com.google.mlkit:object-detection:16.2.3'
-    implementation 'com.google.mlkit:object-detection-custom:16.3.1'
-
-    // ARCore
-    implementation 'com.google.ar:core:1.24.0'
-
-    // Obj - a simple Wavefront OBJ file loader
-    // https://github.com/javagl/Obj
-    implementation 'de.javagl:obj:0.2.1'
-
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.2'
+
+
+    // Maps & Location
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
+    implementation 'com.google.maps.android:maps-utils-ktx:0.2'
+
+
+    // ARCore
+    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
+
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:28.4.2')
+
+    // Declare the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+
 }
+apply plugin: 'com.google.gms.google-services'

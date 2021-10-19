@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "619024008372",
+    "project_id": "ar-voinuwka",
+    "storage_bucket": "ar-voinuwka.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619024008372:android:79e250c24394f8c03583e1",
+        "android_client_info": {
+          "package_name": "com.glebkrep.yandexcup.arshooting"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "619024008372-sevh2cidop5cm3sek3pjg66burpdoc0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqT9BT-qU2HJ4Vq9Mr97mbF7fbg4Q0k40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "619024008372-sevh2cidop5cm3sek3pjg66burpdoc0o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
