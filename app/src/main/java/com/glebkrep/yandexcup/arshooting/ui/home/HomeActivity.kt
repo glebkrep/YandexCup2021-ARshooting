@@ -73,8 +73,9 @@ class HomeActivity : ComponentActivity() {
                             }
                         }
                         composable(Screen.SessionList.route) {
-                            SessionListPage(){
-
+                            SessionListPage(viewModel){
+                                viewModel.connectToSession(it)
+                                mainNavController.navigate(Screen.CurrentSession.route)
                             }
                         }
                     }

@@ -35,8 +35,8 @@ object SharePreferences {
 
     fun getUdid(): String {
         var udid = get<String>("udid")
-        if (udid == null) {
-            udid = UUID.randomUUID().toString()
+        if (udid == null || udid=="") {
+            udid = UUID.randomUUID().toString().replace("-","")
             put(
                 "udid", udid
             )

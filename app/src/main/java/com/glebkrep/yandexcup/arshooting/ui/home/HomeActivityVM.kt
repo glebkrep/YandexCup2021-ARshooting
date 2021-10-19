@@ -8,8 +8,10 @@ import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionState
 import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionStateFromInt
 import com.glebkrep.yandexcup.arshooting.gameCore.data.toPlayer
 import com.glebkrep.yandexcup.arshooting.gameCore.repository.FirestoreDatabase
+import com.glebkrep.yandexcup.arshooting.utils.Debug
 import com.glebkrep.yandexcup.arshooting.utils.SharePreferences
 
+//todo divide in two vms
 class HomeActivityVM : ViewModel() {
     private val _sessionUID: MutableLiveData<String> = MutableLiveData()
     val sessionUID: LiveData<String> = _sessionUID
@@ -68,7 +70,10 @@ class HomeActivityVM : ViewModel() {
 
     private fun startListeningForPlayersAndSessionState(sessionUid: String) {
         FirestoreDatabase.startListeningForPlayersAndSessionState(sessionUid){sessionItem ->
-            _connectedPlayers.postValue(sessionItem.players.map { it.toPlayer() })
+            val players = sessionItem.players.map { it.toPlayer() }
+            Debug.log("sessionUid: ${sessionUid}")
+            Debug.log("players: ${players.map { it.name }}")
+            _connectedPlayers.postValue(players)
             _sessionState.postValue(SessionStateFromInt(sessionItem.state))
         }
     }
@@ -81,4 +86,10 @@ class HomeActivityVM : ViewModel() {
         FirestoreDatabase.setSessionState(_sessionUID.value!!,SessionState.GAME_FINISHED)
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        if (_sessionState.value==SessionState.IN_LOBBY && _isCreator.value==true){
+            FirestoreDatabase.setSessionState(_sessionUID.value!!, SessionState.GAME_FINISHED)
+        }
+    }
 }
