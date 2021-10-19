@@ -34,14 +34,15 @@ class HomeActivityVM : ViewModel() {
     private var _myName: String = ""
     fun setMyName(name: String) {
         _myName = name
-        _myUdid.postValue(SharePreferences.getUdid())
+        val udid = SharePreferences.getUdid()
+        _myUdid.postValue(udid)
     }
 
     fun createSession() {
         _isCreator.postValue(true)
         val sesionUid = SharePreferences.getUdid() + System.currentTimeMillis()
-        _sessionUID.postValue(sesionUid)
-        FirestoreDatabaseHome.createSessionWithYourself(sesionUid,_myName,_myUdid.value!!)
+        _sessionUID.value = sesionUid
+        FirestoreDatabaseHome.createSessionWithYourself(sesionUid,_myName,SharePreferences.getUdid())
         startListeningForPlayersAndSessionState(sesionUid)
     }
 
@@ -58,7 +59,7 @@ class HomeActivityVM : ViewModel() {
     }
 
     private fun addYourselfToSession(sessionUid: String){
-        FirestoreDatabaseHome.addYourselfToSession(sessionUid,_myName,_myUdid.value!!)
+        FirestoreDatabaseHome.addYourselfToSession(sessionUid,_myName,SharePreferences.getUdid())
     }
 
     private fun startListeningForSessions(){

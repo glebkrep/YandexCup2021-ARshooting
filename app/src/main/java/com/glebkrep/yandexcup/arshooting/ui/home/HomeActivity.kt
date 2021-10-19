@@ -16,6 +16,7 @@ import com.glebkrep.yandexcup.arshooting.ui.home.pages.currentSession.CurrentSes
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.home.HomePage
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.sessionList.SessionListPage
 import com.glebkrep.yandexcup.arshooting.ui.theme.ArshootingTheme
+import com.glebkrep.yandexcup.arshooting.utils.Debug
 
 //В детстве все любили играть в "войнушку",
 //главной проблемой которой было выяснить, кто в кого первый попал.
@@ -65,13 +66,13 @@ class HomeActivity : ComponentActivity() {
                         }
                         composable(Screen.CurrentSession.route) {
                             CurrentSessionPage(viewModel) {
+                                Debug.log("session id: ${it}")
                                 this@HomeActivity.startActivity(
                                     Intent(
                                         this@HomeActivity,
                                         GameActivity::class.java
-                                    ),
-                                    Bundle().apply {
-                                        putString("SESSION_ID",it)
+                                    ).apply {
+                                        putExtra("SESSION_ID",it)
                                     }
                                 )
                                 finish()

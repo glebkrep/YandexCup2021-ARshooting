@@ -19,10 +19,13 @@ object FirestoreDatabaseGame {
     }
 
     fun writeYourLocation(sessionId: String, mLocation: Location, udid: String) {
-        val sessionDocRef = db.collection("sessions").document(sessionId)
+        Debug.log("GAME.LOCATION_sessionId :$sessionId")
+        val sessionDocRef = db.document("sessions/${sessionId}")
         db.runTransaction { transaction ->
+            Debug.log("TRANSACTION")
             val sessionSnapshot = transaction.get(sessionDocRef)
             val session = sessionSnapshot.toObject(SessionItem::class.java) ?: return@runTransaction
+            Debug.log("session:${session.players.map { it.toString() }}")
             val myPlayer = session.players.first() { it.udid == udid }
             val myPlayerHashMap = hashMapOf(
                 "deadTimestamp" to myPlayer.deadTimestamp,
@@ -48,8 +51,6 @@ object FirestoreDatabaseGame {
                 FieldValue.arrayUnion(myPlayerNewHashMap)
             )
         }.addOnSuccessListener {
-            Debug.log("Successfully updated gps player")
-
         }.addOnFailureListener {
             Debug.log("Error updating gps player ${it}")
 
@@ -64,10 +65,9 @@ object FirestoreDatabaseGame {
                 return@addSnapshotListener
             }
             if (snapshot != null && snapshot.exists()) {
-                Debug.log(snapshot.data?.keys)
                 val sessionItem =
                     snapshot.toObject(SessionItem::class.java) ?: return@addSnapshotListener
-                Debug.log("Current data: ${sessionItem}")
+//                Debug.log("Current data: ${sessionItem}")
                 onLocationsUpdated.invoke(sessionItem.players)
             } else {
                 Debug.log("empty data")
@@ -105,7 +105,6 @@ object FirestoreDatabaseGame {
                 FieldValue.arrayUnion(newKilledPlayerHashMap)
             )
         }.addOnSuccessListener {
-            Debug.log("Successfully killed player")
 
         }.addOnFailureListener {
             Debug.log("Error killing player ${it}")

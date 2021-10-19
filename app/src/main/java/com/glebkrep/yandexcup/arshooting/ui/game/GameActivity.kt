@@ -11,6 +11,7 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -23,10 +24,12 @@ import com.glebkrep.yandexcup.arshooting.ar.model.GeometryLocation
 import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.ar.model.getPositionVector
 import com.glebkrep.yandexcup.arshooting.ui.home.HomeActivity
+import com.glebkrep.yandexcup.arshooting.utils.Debug
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.Node
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
 
@@ -44,42 +47,55 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
     private val rotationMatrix = FloatArray(9)
     private val orientationAngles = FloatArray(3)
 
-    private var planceAnchorNode: AnchorNode? = null
+    private var placeAnchorNode: AnchorNode? = null
     private var players: List<Player>? = null
     private var currentLocation: Location? = null
 
     private val viewModel by viewModels<GameVM>()
 
+    private var txtAlivePlayers: TextView? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sensorManager = getSystemService()!!
         if (!isSupportedDevice()) {
             return
         }
-        val sessionId = intent.getStringExtra("SESSION_ID") ?: return
-        viewModel.setSessionId(sessionId)
+        Debug.log(intent.extras?.keySet())
+        val sessionId = intent.extras?.getString("SESSION_ID") ?: return
+
+        viewModel.setSessionId(sessionId, this)
         setContentView(R.layout.activity_game)
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ar_fragment) as PlacesArFragment
 
-        sensorManager = getSystemService()!!
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         setUpAr()
-        setUpMaps()
+        getCurrentLocation {
+            players = getNearbyPlaces()
+        }
+        txtAlivePlayers = findViewById(R.id.txtAlivePlayers)
 
         viewModel.otherAlivePlayers.observe(this) {
+            Debug.log("alive players: ${it.map { it.name }}")
+            txtAlivePlayers?.text = """
+                ${it.map { "\n${it.name}:${it.location.location.lat.toString()};${it.location.location.lng.toString()}" }}
+            """.trimIndent()
             addPlaces(it)
         }
-        viewModel.location.observe(this){
+        viewModel.location.observe(this) {
             currentLocation = it
         }
-        viewModel.amIAlive.observe(this){
-             //todo: i'm dead, display according message
-            Toast.makeText(this,"I'm dead...",Toast.LENGTH_LONG).show()
+        viewModel.amIAlive.observe(this) {
+            if (!it) return@observe
+            //todo: i'm dead, display according message
+            Toast.makeText(this, "I'm dead...", Toast.LENGTH_LONG).show()
         }
-        viewModel.isGameOverId.observe(this){
-            startActivity(Intent(this,HomeActivity::class.java),Bundle().apply {
-                putString("game_id",it)
+        viewModel.isGameOverId.observe(this) {
+            if (it == "") return@observe
+            Debug.log("game over")
+            startActivity(Intent(this, HomeActivity::class.java), Bundle().apply {
+                putString("game_id", it)
             })
         }
     }
@@ -111,15 +127,16 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
             // Create anchor
             val anchor = hitResult.createAnchor()
-            planceAnchorNode = AnchorNode(anchor)
-            planceAnchorNode?.setParent(arFragment.arSceneView.scene)
+            placeAnchorNode = AnchorNode(anchor)
+            placeAnchorNode?.setParent(arFragment.arSceneView.scene)
         }
     }
 
     private fun addPlaces(players: List<Player>) {
-        val anchorNode = planceAnchorNode
+        val anchorNode = placeAnchorNode
+        placeAnchorNode
         if (anchorNode == null) {
-            Toast.makeText(this, "Нажмите на поверхность чтобы начать", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(this, "Нажмите на поверхность чтобы начать", Toast.LENGTH_SHORT).show()
             return
         }
         val currentLocation = currentLocation
@@ -127,8 +144,12 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             Log.w(TAG, "Location has not been determined yet")
             return
         }
+        val newAnchorNodesList = mutableListOf<Node>()
+        newAnchorNodesList.addAll(anchorNode.children?: listOf())
 
-        for (anchorChild in anchorNode.children) {
+        for (anchorChild in newAnchorNodesList) {
+            anchorChild.isEnabled = false
+            anchorChild.setParent(null)
             anchorNode.removeChild(anchorChild)
         }
 
@@ -138,13 +159,6 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             placeNode.setParent(anchorNode)
             placeNode.localPosition =
                 place.getPositionVector(orientationAngles[0], currentLocation.latLng)
-        }
-    }
-
-
-    private fun setUpMaps() {
-        getCurrentLocation {
-            players = getNearbyPlaces()
         }
     }
 

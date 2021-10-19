@@ -36,7 +36,6 @@ object FirestoreDatabaseHome {
             .document(sessionUid)
             .set(session)
             .addOnSuccessListener { documentReference ->
-                Debug.log("Successfully created session")
             }
             .addOnFailureListener { e ->
                 Debug.log("Error creating session ${e}")
@@ -54,7 +53,6 @@ object FirestoreDatabaseHome {
             .document(sessionUid)
             .update("players", FieldValue.arrayUnion(user))
             .addOnSuccessListener { documentReference ->
-                Debug.log("Successfully added myself to session")
             }
             .addOnFailureListener { e ->
                 Debug.log("Error adding myself to session ${e}")
@@ -67,7 +65,6 @@ object FirestoreDatabaseHome {
             .document(sessionUid)
             .update("state", state.int)
             .addOnSuccessListener { documentReference ->
-                Debug.log("Successfully updated session state")
             }
             .addOnFailureListener { e ->
                 Debug.log("Error updating session state ${e}")
@@ -102,7 +99,6 @@ object FirestoreDatabaseHome {
 
             if (snapshot != null && snapshot.exists()) {
 
-                Debug.log(snapshot.data?.keys)
                 val sessionItem =
                     snapshot.toObject(SessionItem::class.java) ?: return@addSnapshotListener
                 Debug.log("Current data: ${sessionItem}")
