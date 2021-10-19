@@ -38,6 +38,7 @@ import com.glebkrep.yandexcup.arshooting.ui.theme.ArshootingTheme
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //todo check for incoming game_id and navigate to results page
         setContent {
             ArshootingTheme {
                 // A surface container using the 'background' color from the theme
@@ -68,8 +69,12 @@ class HomeActivity : ComponentActivity() {
                                     Intent(
                                         this@HomeActivity,
                                         GameActivity::class.java
-                                    )
+                                    ),
+                                    Bundle().apply {
+                                        putString("SESSION_ID",it)
+                                    }
                                 )
+                                finish()
                             }
                         }
                         composable(Screen.SessionList.route) {

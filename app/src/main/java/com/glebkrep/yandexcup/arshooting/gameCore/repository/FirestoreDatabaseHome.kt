@@ -9,7 +9,7 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-object FirestoreDatabase {
+object FirestoreDatabaseHome {
     val db: FirebaseFirestore
 
     init {

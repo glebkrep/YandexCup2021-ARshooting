@@ -7,7 +7,7 @@ import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionState
 import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionStateFromInt
 import com.glebkrep.yandexcup.arshooting.gameCore.data.toPlayer
-import com.glebkrep.yandexcup.arshooting.gameCore.repository.FirestoreDatabase
+import com.glebkrep.yandexcup.arshooting.gameCore.repository.FirestoreDatabaseHome
 import com.glebkrep.yandexcup.arshooting.utils.Debug
 import com.glebkrep.yandexcup.arshooting.utils.SharePreferences
 
@@ -41,7 +41,7 @@ class HomeActivityVM : ViewModel() {
         _isCreator.postValue(true)
         val sesionUid = SharePreferences.getUdid() + System.currentTimeMillis()
         _sessionUID.postValue(sesionUid)
-        FirestoreDatabase.createSessionWithYourself(sesionUid,_myName,_myUdid.value!!)
+        FirestoreDatabaseHome.createSessionWithYourself(sesionUid,_myName,_myUdid.value!!)
         startListeningForPlayersAndSessionState(sesionUid)
     }
 
@@ -58,18 +58,18 @@ class HomeActivityVM : ViewModel() {
     }
 
     private fun addYourselfToSession(sessionUid: String){
-        FirestoreDatabase.addYourselfToSession(sessionUid,_myName,_myUdid.value!!)
+        FirestoreDatabaseHome.addYourselfToSession(sessionUid,_myName,_myUdid.value!!)
     }
 
     private fun startListeningForSessions(){
-        FirestoreDatabase.startListeningForSessions {
+        FirestoreDatabaseHome.startListeningForSessions {
             val sessions = it.filter { it.value.state==SessionState.IN_LOBBY.int }.map { it.key }
             _sessions.postValue(sessions)
         }
     }
 
     private fun startListeningForPlayersAndSessionState(sessionUid: String) {
-        FirestoreDatabase.startListeningForPlayersAndSessionState(sessionUid){sessionItem ->
+        FirestoreDatabaseHome.startListeningForPlayersAndSessionState(sessionUid){ sessionItem ->
             val players = sessionItem.players.map { it.toPlayer() }
             Debug.log("sessionUid: ${sessionUid}")
             Debug.log("players: ${players.map { it.name }}")
@@ -79,17 +79,17 @@ class HomeActivityVM : ViewModel() {
     }
 
     fun startGame() {
-        FirestoreDatabase.setSessionState(_sessionUID.value!!,SessionState.PLAYING)
+        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!,SessionState.PLAYING)
     }
 
     fun stopSession() {
-        FirestoreDatabase.setSessionState(_sessionUID.value!!,SessionState.GAME_FINISHED)
+        FirestoreDatabaseHome.setSessionState(_sessionUID.value!!,SessionState.GAME_FINISHED)
     }
 
     override fun onCleared() {
         super.onCleared()
         if (_sessionState.value==SessionState.IN_LOBBY && _isCreator.value==true){
-            FirestoreDatabase.setSessionState(_sessionUID.value!!, SessionState.GAME_FINISHED)
+            FirestoreDatabaseHome.setSessionState(_sessionUID.value!!, SessionState.GAME_FINISHED)
         }
     }
 }

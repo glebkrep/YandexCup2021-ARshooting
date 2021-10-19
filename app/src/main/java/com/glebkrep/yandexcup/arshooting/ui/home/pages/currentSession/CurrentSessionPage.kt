@@ -16,7 +16,7 @@ import com.glebkrep.yandexcup.arshooting.gameCore.data.SessionState
 import com.glebkrep.yandexcup.arshooting.ui.home.HomeActivityVM
 
 @Composable
-fun CurrentSessionPage(homeActivityVM: HomeActivityVM, onGameStart: () -> (Unit)) {
+fun CurrentSessionPage(homeActivityVM: HomeActivityVM, onGameStart: (String) -> (Unit)) {
     val isCreator by homeActivityVM.isCreator.observeAsState(false)
     val sessionUID by homeActivityVM.sessionUID.observeAsState("")
     val playersList by homeActivityVM.connectedPlayers.observeAsState(listOf())
@@ -28,7 +28,7 @@ fun CurrentSessionPage(homeActivityVM: HomeActivityVM, onGameStart: () -> (Unit)
         verticalArrangement = Arrangement.Center
     ) {
         if (sessionState == SessionState.PLAYING) {
-            onGameStart.invoke()
+            onGameStart.invoke(sessionUID)
         }
         if (sessionState == SessionState.GAME_FINISHED) {
             Text("Извините, хост закрыл сессию", Modifier.padding(16.dp))

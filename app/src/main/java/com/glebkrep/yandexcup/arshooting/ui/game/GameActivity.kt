@@ -3,6 +3,7 @@ package com.glebkrep.yandexcup.arshooting.ui.game
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -11,19 +12,21 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 import com.glebkrep.yandexcup.arshooting.R
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.LatLng
-import com.google.ar.sceneform.AnchorNode
 import com.glebkrep.yandexcup.arshooting.ar.PlaceNode
 import com.glebkrep.yandexcup.arshooting.ar.PlacesArFragment
 import com.glebkrep.yandexcup.arshooting.ar.model.Geometry
 import com.glebkrep.yandexcup.arshooting.ar.model.GeometryLocation
 import com.glebkrep.yandexcup.arshooting.ar.model.Player
 import com.glebkrep.yandexcup.arshooting.ar.model.getPositionVector
+import com.glebkrep.yandexcup.arshooting.ui.home.HomeActivity
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
+import com.google.ar.sceneform.AnchorNode
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
 
@@ -41,15 +44,19 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
     private val rotationMatrix = FloatArray(9)
     private val orientationAngles = FloatArray(3)
 
-    private var anchorNode: AnchorNode? = null
+    private var planceAnchorNode: AnchorNode? = null
     private var players: List<Player>? = null
     private var currentLocation: Location? = null
+
+    private val viewModel by viewModels<GameVM>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!isSupportedDevice()) {
             return
         }
+        val sessionId = intent.getStringExtra("SESSION_ID") ?: return
+        viewModel.setSessionId(sessionId)
         setContentView(R.layout.activity_game)
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ar_fragment) as PlacesArFragment
@@ -59,6 +66,22 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
         setUpAr()
         setUpMaps()
+
+        viewModel.otherAlivePlayers.observe(this) {
+            addPlaces(it)
+        }
+        viewModel.location.observe(this){
+            currentLocation = it
+        }
+        viewModel.amIAlive.observe(this){
+             //todo: i'm dead, display according message
+            Toast.makeText(this,"I'm dead...",Toast.LENGTH_LONG).show()
+        }
+        viewModel.isGameOverId.observe(this){
+            startActivity(Intent(this,HomeActivity::class.java),Bundle().apply {
+                putString("game_id",it)
+            })
+        }
     }
 
     override fun onResume() {
@@ -88,54 +111,40 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
             // Create anchor
             val anchor = hitResult.createAnchor()
-            anchorNode = AnchorNode(anchor)
-            anchorNode?.setParent(arFragment.arSceneView.scene)
-            addPlaces(anchorNode!!)
+            planceAnchorNode = AnchorNode(anchor)
+            planceAnchorNode?.setParent(arFragment.arSceneView.scene)
         }
     }
 
-    private fun addPlaces(anchorNode: AnchorNode) {
+    private fun addPlaces(players: List<Player>) {
+        val anchorNode = planceAnchorNode
+        if (anchorNode == null) {
+            Toast.makeText(this, "Нажмите на поверхность чтобы начать", Toast.LENGTH_SHORT).show()
+            return
+        }
         val currentLocation = currentLocation
         if (currentLocation == null) {
             Log.w(TAG, "Location has not been determined yet")
             return
         }
 
-        val places = players
-        if (places == null) {
-            Log.w(TAG, "No places to put")
-            return
+        for (anchorChild in anchorNode.children) {
+            anchorNode.removeChild(anchorChild)
         }
 
-        for (place in places) {
+        for (place in players) {
             // Add the place in AR
             val placeNode = PlaceNode(this, place)
             placeNode.setParent(anchorNode)
-            placeNode.localPosition = place.getPositionVector(orientationAngles[0], currentLocation.latLng)
-            placeNode.setOnTapListener { _, _ ->
-                showInfoWindow(place)
-            }
+            placeNode.localPosition =
+                place.getPositionVector(orientationAngles[0], currentLocation.latLng)
         }
-    }
-
-    private fun showInfoWindow(player: Player) {
-        // Show in AR
-        val matchingPlaceNode = anchorNode?.children?.filter {
-            it is PlaceNode
-        }?.first {
-            val otherPlace = (it as PlaceNode).player ?: return@first false
-            return@first otherPlace == player
-        } as? PlaceNode
-//        matchingPlaceNode?.showInfoWindow()
     }
 
 
     private fun setUpMaps() {
         getCurrentLocation {
             players = getNearbyPlaces()
-            for (place in players?: listOf()){
-                showInfoWindow(place)
-            }
         }
     }
 
@@ -149,35 +158,43 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun getNearbyPlaces():List<Player> {
+    private fun getNearbyPlaces(): List<Player> {
         return listOf(
             Player(
                 udid = "0",
                 name = "Конец справа",
-                location = Geometry(GeometryLocation(
-                    59.94065, 30.384895
-                ))
+                location = Geometry(
+                    GeometryLocation(
+                        59.94065, 30.384895
+                    )
+                )
             ),
             Player(
                 udid = "1",
                 name = "Конец слева",
-                location = Geometry(GeometryLocation(
-                    59.939938,30.386433
-                ))
+                location = Geometry(
+                    GeometryLocation(
+                        59.939938, 30.386433
+                    )
+                )
             ),
             Player(
                 udid = "2",
                 name = "Через дорогу",
-                location = Geometry(GeometryLocation(
-                    59.940382,30.385033
-                ))
+                location = Geometry(
+                    GeometryLocation(
+                        59.940382, 30.385033
+                    )
+                )
             ),
             Player(
                 udid = "3",
                 name = "Сзади",
-                location = Geometry(GeometryLocation(
-                    59.940681, 30.385757
-                ))
+                location = Geometry(
+                    GeometryLocation(
+                        59.940681, 30.385757
+                    )
+                )
             )
         )
     }
