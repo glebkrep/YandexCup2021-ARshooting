@@ -35,16 +35,18 @@ class GameVM(application: Application) : AndroidViewModel(application) {
     private val _isGameOverId: MutableLiveData<String> = MutableLiveData("")
     val isGameOverId: LiveData<String> = _isGameOverId
 
-    fun setSessionId(sessionId: String,activity:Activity) {
+    fun setSessionId(sessionId: String, activity: Activity) {
         this.sessionId = sessionId
         startTimeSending(activity)
         startListeningForPlayersUpdates()
     }
 
-    fun shoot() {
-        //todo set timeout and think how to shot
-        //if (shot)
-//        FirestoreDatabaseGame.shotPlayer(sessionId, shotPlayerUdid)
+    var lastTime = System.currentTimeMillis()
+    fun shoot(shotPlayerUdid: String) {
+        if ((System.currentTimeMillis() - lastTime) > 5000) {
+            lastTime = System.currentTimeMillis()
+            FirestoreDatabaseGame.shotPlayer(sessionId, shotPlayerUdid)
+        }
     }
 
     var fusedLocationClient: FusedLocationProviderClient? = null
@@ -90,17 +92,18 @@ class GameVM(application: Application) : AndroidViewModel(application) {
         FirestoreDatabaseGame.getPlayersDataUpdates(sessionId) { playersList ->
             val list = playersList
             Debug.log("players: ${list.map { it.name }}")
-            val me = list.firstOrNull() { it.udid == SharePreferences.getUdid() }?:return@getPlayersDataUpdates
+            val me = list.firstOrNull() { it.udid == SharePreferences.getUdid() }
+                ?: return@getPlayersDataUpdates
             if (me.deadTimestamp != 0L) {
                 imDead()
             }
-            val alivePlayers = list.filter { it.deadTimestamp == 0L && it.udid!=SharePreferences.getUdid()}
-            if (alivePlayers.isEmpty()) {
+            val alivePlayers =
+                list.filter { it.deadTimestamp == 0L }
+            if (alivePlayers.size < 2) {
                 nobodyIsAlive()
             }
-            else{
-                _otherAlivePlayers.postValue(alivePlayers.map { it.toPlayer() })
-            }
+            _otherAlivePlayers.postValue(alivePlayers.filter { it.udid != SharePreferences.getUdid() }
+                .map { it.toPlayer() })
         }
     }
 
@@ -110,9 +113,8 @@ class GameVM(application: Application) : AndroidViewModel(application) {
     }
 
     private fun nobodyIsAlive() {
-        //todo revert that
-//        _isGameOverId.postValue(sessionId)
-//        stopLocationUpdates()
+        _isGameOverId.postValue(sessionId)
+        stopLocationUpdates()
     }
 
 }

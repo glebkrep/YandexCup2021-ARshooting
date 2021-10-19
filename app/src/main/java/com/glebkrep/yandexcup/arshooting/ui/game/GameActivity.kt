@@ -11,10 +11,13 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.getSystemService
 import com.glebkrep.yandexcup.arshooting.R
 import com.glebkrep.yandexcup.arshooting.ar.PlaceNode
@@ -29,6 +32,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.HitTestResult
 import com.google.ar.sceneform.Node
 
 class GameActivity : AppCompatActivity(), SensorEventListener {
@@ -54,8 +58,10 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
     private val viewModel by viewModels<GameVM>()
 
     private var txtAlivePlayers: TextView? = null
+    private var constraintImDead: ConstraintLayout? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         sensorManager = getSystemService()!!
         if (!isSupportedDevice()) {
             return
@@ -65,7 +71,8 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
 
         viewModel.setSessionId(sessionId, this)
         setContentView(R.layout.activity_game)
-
+        txtAlivePlayers = findViewById(R.id.txtAlivePlayers)
+        constraintImDead = findViewById(R.id.constraint_im_dead)
         arFragment = supportFragmentManager.findFragmentById(R.id.ar_fragment) as PlacesArFragment
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -74,29 +81,30 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         getCurrentLocation {
             players = getNearbyPlaces()
         }
-        txtAlivePlayers = findViewById(R.id.txtAlivePlayers)
 
-        viewModel.otherAlivePlayers.observe(this) {
+        viewModel.otherAlivePlayers.observe(this) { it ->
             Debug.log("alive players: ${it.map { it.name }}")
-            txtAlivePlayers?.text = """
-                ${it.map { "\n${it.name}:${it.location.location.lat.toString()};${it.location.location.lng.toString()}" }}
-            """.trimIndent()
+            val playersString = it.map { it.name+" [lng:${it.location.location.lng};lat:${it.location.location.lat}]\n" }.joinToString { it }
+            Debug.log("playersString:\n${playersString}")
+            txtAlivePlayers
+            txtAlivePlayers?.text = "Живые Соперники:\n${playersString}"
             addPlaces(it)
         }
         viewModel.location.observe(this) {
             currentLocation = it
         }
         viewModel.amIAlive.observe(this) {
-            if (!it) return@observe
-            //todo: i'm dead, display according message
+            if (it) return@observe
+            constraintImDead?.visibility = View.VISIBLE
             Toast.makeText(this, "I'm dead...", Toast.LENGTH_LONG).show()
         }
         viewModel.isGameOverId.observe(this) {
             if (it == "") return@observe
             Debug.log("game over")
-            startActivity(Intent(this, HomeActivity::class.java), Bundle().apply {
-                putString("game_id", it)
+            startActivity(Intent(this, HomeActivity::class.java).apply {
+                this.putExtra("game_id", it)
             })
+            finish()
         }
     }
 
@@ -136,7 +144,7 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
         val anchorNode = placeAnchorNode
         placeAnchorNode
         if (anchorNode == null) {
-//            Toast.makeText(this, "Нажмите на поверхность чтобы начать", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Нажмите на поверхность чтобы начать", Toast.LENGTH_SHORT).show()
             return
         }
         val currentLocation = currentLocation
@@ -145,7 +153,7 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             return
         }
         val newAnchorNodesList = mutableListOf<Node>()
-        newAnchorNodesList.addAll(anchorNode.children?: listOf())
+        newAnchorNodesList.addAll(anchorNode.children ?: listOf())
 
         for (anchorChild in newAnchorNodesList) {
             anchorChild.isEnabled = false
@@ -159,6 +167,13 @@ class GameActivity : AppCompatActivity(), SensorEventListener {
             placeNode.setParent(anchorNode)
             placeNode.localPosition =
                 place.getPositionVector(orientationAngles[0], currentLocation.latLng)
+            placeNode.setOnTapListener(object : Node.OnTapListener {
+                override fun onTap(p0: HitTestResult?, p1: MotionEvent?) {
+                    viewModel.shoot(place.udid)
+                    Toast.makeText(this@GameActivity, "BANG!", Toast.LENGTH_LONG).show()
+                }
+
+            })
         }
     }
 

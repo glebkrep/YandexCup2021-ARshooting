@@ -16,7 +16,11 @@ import com.google.accompanist.permissions.*
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun HomePage(createSession: (String) -> (Unit),sessionList:(String)->(Unit)) {
+fun HomePage(gameId:String?,createSession: (String) -> (Unit),sessionList:(String)->(Unit),toResults:(String)->(Unit)) {
+    if (gameId!=null){
+        toResults.invoke(gameId)
+        return
+    }
     val cameraAndLocationPermissionState =
         rememberMultiplePermissionsState(listOf(Manifest.permission.CAMERA,Manifest.permission.ACCESS_FINE_LOCATION))
 

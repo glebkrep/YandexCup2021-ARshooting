@@ -71,6 +71,7 @@ object FirestoreDatabaseHome {
             }
     }
 
+    //todo make update listener instead of one-time request
     fun startListeningForSessions(onSessionListUpdate: (Map<String, SessionItem>) -> (Unit)) {
         val collectionRef = db.collection("sessions")
         collectionRef.get().addOnCompleteListener { it ->

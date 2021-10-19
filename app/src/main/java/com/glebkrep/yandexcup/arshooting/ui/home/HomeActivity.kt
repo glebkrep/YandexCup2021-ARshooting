@@ -14,6 +14,8 @@ import com.glebkrep.yandexcup.arshooting.ui.game.GameActivity
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.Screen
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.currentSession.CurrentSessionPage
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.home.HomePage
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.results.ResultsPage
+import com.glebkrep.yandexcup.arshooting.ui.home.pages.results.ResultsPageVM
 import com.glebkrep.yandexcup.arshooting.ui.home.pages.sessionList.SessionListPage
 import com.glebkrep.yandexcup.arshooting.ui.theme.ArshootingTheme
 import com.glebkrep.yandexcup.arshooting.utils.Debug
@@ -39,6 +41,7 @@ import com.glebkrep.yandexcup.arshooting.utils.Debug
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var gameId = intent.extras?.getString("game_id")
         //todo check for incoming game_id and navigate to results page
         setContent {
             ArshootingTheme {
@@ -51,7 +54,7 @@ class HomeActivity : ComponentActivity() {
                         startDestination = Screen.Home.route
                     ) {
                         composable(Screen.Home.route) {
-                            HomePage(
+                            HomePage(gameId = gameId,
                                 createSession = {
                                     viewModel.setMyName(it)
                                     viewModel.createSession()
@@ -61,6 +64,10 @@ class HomeActivity : ComponentActivity() {
                                     viewModel.setMyName(it)
                                     viewModel.goToSessionList()
                                     mainNavController.navigate(Screen.SessionList.route)
+                                },
+                                toResults = {
+                                    gameId = null
+                                    mainNavController.navigate(Screen.Results.route.replace("{sessionId}",it))
                                 }
                             )
                         }
@@ -83,6 +90,13 @@ class HomeActivity : ComponentActivity() {
                                 viewModel.connectToSession(it)
                                 mainNavController.navigate(Screen.CurrentSession.route)
                             }
+                        }
+                        composable(Screen.Results.route){
+                            val vm:ResultsPageVM = androidx.lifecycle.viewmodel.compose.viewModel()
+                            val sessionId = it.arguments?.getString("sessionId")
+                            Debug.log("sessionId: $sessionId")
+                            vm.setSessionId(sessionId)
+                            ResultsPage(vm)
                         }
                     }
                 }
